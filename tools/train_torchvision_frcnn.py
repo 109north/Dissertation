@@ -15,8 +15,8 @@ from tqdm import tqdm
 import torchvision
 
 # move into the root directory to find my data module
-os.chdir('/Users/narayanmurti/Workspace/Dissertation')
-sys.path.append(os.getcwd())
+#os.chdir('/Users/narayanmurti/Workspace/Dissertation')
+#sys.path.append(os.getcwd())
 from data.citypersons import CitypersonsDataset
 from torch.utils.data.dataloader import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
