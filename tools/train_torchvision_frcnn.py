@@ -139,27 +139,26 @@ def train(args):
 
 
 #THIS IS FOR RUNNING ON THE COMMAND LINE
-#if __name__ == '__main__':
-#    parser = argparse.ArgumentParser(description='Arguments for faster rcnn using torchvision code training')
-#    parser.add_argument('--config', dest='config_path',
-#                        default='config/citypersons.yaml', type=str)
-#    parser.add_argument('--use_resnet50_fpn', dest='use_resnet50_fpn',
-#                        default=True, type=bool)
-#    args = parser.parse_args(args=[] if sys.argv[0].endswith('ipykernel_launcher.py') else sys.argv[1:])
-#    train(args)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Arguments for faster rcnn using torchvision code training')
+    parser.add_argument('--config', dest='config_path',
+                        default='config/citypersons.yaml', type=str)
+    parser.add_argument('--use_resnet50_fpn', dest='use_resnet50_fpn',
+                        default=True, type=bool)
+    args = parser.parse_args(args=[] if sys.argv[0].endswith('ipykernel_launcher.py') else sys.argv[1:])
+    train(args)
 
 
 #THIS IS FOR RUNNING IN JUPYTER
 # Manually define the arguments instead of using argparse
-class Args:
-    config_path = 'config/citypersons.yaml'
-    use_resnet50_fpn = True  # or False
+#class Args:
+#    config_path = 'config/citypersons.yaml'
+#    use_resnet50_fpn = True  # or False
 
-args = Args()
-train(args)
+#args = Args()
+#train(args)
 
 
-# In[ ]:
 
 
 
