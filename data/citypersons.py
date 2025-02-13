@@ -62,7 +62,7 @@ def load_images_and_anns(im_dir, ann_file):
         #image_tensor = torch.from_numpy(image_RGB).float().permute(2, 0, 1).to("cuda") / 255.0  # Normalize to [0,1]
         im = Image.open(im_info['filename'])
         im_tensor = torchvision.transforms.ToTensor()(im)
-        h, w = image_tensor.shape[:2] # get height and width of image
+        h, w = im_tensor.shape[:2] # get height and width of image
         im_info['width'] = w
         im_info['height'] = h
         detections = []
