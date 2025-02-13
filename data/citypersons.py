@@ -57,9 +57,11 @@ def load_images_and_anns(im_dir, ann_file):
         im_info = {}
         im_info['img_id'] = row['image_id'].split('_leftImg8bit.png')[0] # get the image id by splitting at the suffix
         im_info['filename'] = os.path.join(im_dir, '{}_leftImg8bit.png'.format(im_info['img_id'])) # creates a path to the relevant image file by adding the png suffix onto the image id from above line
-        image_BGR = cv2.imread(im_info['filename']) # read the image with cv2
-        image_RGB = cv2.cvtColor(image_BGR, cv2.COLOR_BGR2RGB) # convert to RBG
-        image_tensor = torch.from_numpy(image_RGB).float().permute(2, 0, 1).to("cuda") / 255.0  # Normalize to [0,1]
+        #image_BGR = cv2.imread(im_info['filename']) # read the image with cv2
+        #image_RGB = cv2.cvtColor(image_BGR, cv2.COLOR_BGR2RGB) # convert to RBG
+        #image_tensor = torch.from_numpy(image_RGB).float().permute(2, 0, 1).to("cuda") / 255.0  # Normalize to [0,1]
+        im = Image.open(im_info['filename'])
+        im_tensor = torchvision.transforms.ToTensor()(im)
         h, w = image_tensor.shape[:2] # get height and width of image
         im_info['width'] = w
         im_info['height'] = h
