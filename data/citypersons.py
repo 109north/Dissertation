@@ -57,12 +57,10 @@ def load_images_and_anns(im_dir, ann_file):
         im_info = {}
         im_info['img_id'] = row['image_id'].split('_leftImg8bit.png')[0] # get the image id by splitting at the suffix
         im_info['filename'] = os.path.join(im_dir, '{}_leftImg8bit.png'.format(im_info['img_id'])) # creates a path to the relevant image file by adding the png suffix onto the image id from above line
-        try:
-            image_BGR = cv2.imread(im_info['filename']) # read the image with cv2
-        except Warning:
-            # if the image path from df doesn't exist in the image directory, skip the iteration
-            continue
-        h, w = image_BGR.shape[:2] # get height and width of image
+        image_BGR = cv2.imread(im_info['filename']) # read the image with cv2
+        image_RGB = cv2.cvtColor(image_BGR, cv2.COLOR_BGR2RGB) # convert to RBG
+        image_tensor = torch.from_numpy(image_RGB).float().permute(2, 0, 1).to("cuda") / 255.0  # Normalize to [0,1]
+        h, w = image_tensor.shape[:2] # get height and width of image
         im_info['width'] = w
         im_info['height'] = h
         detections = []
