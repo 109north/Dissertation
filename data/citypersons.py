@@ -75,10 +75,8 @@ def load_images_and_anns(im_dir, ann_file):
             bbox = [
                 int(list(row['x1'])[i]),
                 int(list(row['y1'])[i]),
-                #int(list(row['x1'])[i]) + int(list(row['w'])[i]),
-                #int(list(row['x1'])[i]) + int(list(row['h'])[i])
-                int(list(row['w'])[i]),
-                int(list(row['h'])[i])
+                int(list(row['x1'])[i]) + int(list(row['w'])[i]),
+                int(list(row['x1'])[i]) + int(list(row['h'])[i])
             ]
             det['label'] = list(row['class_label'])[i] # **FOR NOW IM JUST GOING TO LABEL THEM WITH THE NUMBERS**
             det['bbox'] = bbox
