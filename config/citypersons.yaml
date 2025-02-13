@@ -1,8 +1,8 @@
 dataset_params:
-  im_train_path: '/Users/narayanmurti/Workspace/Dissertation/data/citypersons_dir/train/images'
-  ann_train_path: '/Users/narayanmurti/Workspace/Dissertation/data/citypersons_dir/train/train_df.csv'
-  im_test_path: '/Users/narayanmurti/Workspace/Dissertation/data/citypersons_dir/valid/images'
-  ann_test_path: '/Users/narayanmurti/Workspace/Dissertation/data/citypersons_dir/valid/val_df.csv'
+  im_train_path: '~/Dissertation/data/train/images'
+  ann_train_path: '~/Dissertation/data/train/train_df.csv'
+  im_test_path: '~/Dissertation/data/valid/images'
+  ann_test_path: '~/Dissertation/data/valid/val_df.csv'
   num_classes : 1
 
 model_params:
