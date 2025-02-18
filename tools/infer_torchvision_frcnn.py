@@ -179,7 +179,7 @@ def load_model_and_dataset(args):
     if device == 'cuda':
         torch.cuda.manual_seed_all(seed)
 
-    citypersons = CitypersonsDataset('test', im_dir=dataset_config['im_test_path'], ann_dir=dataset_config['ann_test_path'])
+    citypersons = CitypersonsDataset('test', im_dir=dataset_config['im_test_path'], ann_file=dataset_config['ann_test_path'])
     test_dataset = DataLoader(citypersons, batch_size=1, shuffle=False)
 
     if args.use_resnet50_fpn:
