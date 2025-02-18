@@ -211,14 +211,19 @@ def load_model_and_dataset(args):
 
     faster_rcnn_model.eval()
     faster_rcnn_model.to(device)
-    if args.use_resnet50_fpn:
-        faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
-                                                                  'tv_frcnn_r50fpn_' + train_config['ckpt_name']),
-                                                     map_location=device))
-    else:
-        faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
-                                                                  'tv_frcnn_' + train_config['ckpt_name']),
-                                                     map_location=device))
+
+    #THIS IS WHERE I SPECIFY WHICH CUSTOM PRETRAINED MODEL I WILL USE TO TEST
+    # Load the model from the specified checkpoint path
+    faster_rcnn_model.load_state_dict(torch.load(args.checkpoint_path, map_location=device))
+
+    #if args.use_resnet50_fpn:
+    #    faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
+    #                                                              'tv_frcnn_r50fpn_' + train_config['ckpt_name']),
+    #                                                 map_location=device))
+    #else:
+    #    faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
+    #                                                              'tv_frcnn_' + train_config['ckpt_name']),
+    #                                                 map_location=device))
     return faster_rcnn_model, citypersons, test_dataset
 
 
@@ -353,6 +358,10 @@ if __name__ == '__main__':
                         default=True, type=bool)
     parser.add_argument('--use_resnet50_fpn', dest='use_resnet50_fpn',
                         default=True, type=bool)
+    # add a required argument to specify the path of the pretrained model checkpoint to test on
+    parser.add_argument('--checkpoint_path', dest='checkpoint_path',
+                    required=True, type=str,
+                    help='Path to the custom pretrained model checkpoint')
     args = parser.parse_args()
     
     if args.infer_samples:
