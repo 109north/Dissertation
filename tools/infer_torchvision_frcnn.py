@@ -255,13 +255,13 @@ def infer(args):
     det_df_path = '/home/nam27/Dissertation/results/det_df.csv'
     det_df = pandas.read_csv(det_df_path)
     last_6_filenames = list(det_df.tail(6)['filename'])
+    sample_count = 0
 
     #NO LONGER USING RANDOM SAMPLES
     #for sample_count in tqdm(range(10)):
     #    random_idx = random.randint(0, len(citypersons))
 
     for fname in last_6_filenames:
-        sample_count = 0
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
         matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
         index = matching_index[0]
@@ -336,9 +336,9 @@ def infer(args):
 
     #extract the BEST TWO results
     best_2_filenames = list(det_df.head(2)['filename'])
-
+    sample_count = 0
+    
     for fname in best_2_filenames:
-        sample_count = 0
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
         matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
         index = matching_index[0]
