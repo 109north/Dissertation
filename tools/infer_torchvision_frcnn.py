@@ -12,6 +12,7 @@ import argparse
 import random
 import os
 import yaml
+import pandas
 from tqdm import tqdm
 from model.faster_rcnn import FasterRCNN
 from data.citypersons import CitypersonsDataset
@@ -68,6 +69,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
     all_aps = {}
     # average precisions for ALL classes
     aps = []
+    det_df = []
     for idx, label in enumerate(gt_labels):
         # Get detection predictions of this class
         cls_dets = [
@@ -76,17 +78,17 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
         ]
 
         # cls_dets = [
-        #   (0, [x1_0, y1_0, x2_0, y2_0, score_0]),
+        #   (0, [x1_0, y1_0, x2_0, y2_0, score_0, im_name]),
         #   ...
-        #   (0, [x1_M, y1_M, x2_M, y2_M, score_M]),
-        #   (1, [x1_0, y1_0, x2_0, y2_0, score_0]),
+        #   (0, [x1_M, y1_M, x2_M, y2_M, score_M, im_name]),
+        #   (1, [x1_0, y1_0, x2_0, y2_0, score_0, im_name]),
         #   ...
-        #   (1, [x1_N, y1_N, x2_N, y2_N, score_N]),
+        #   (1, [x1_N, y1_N, x2_N, y2_N, score_N, im_name]),
         #   ...
         # ]
 
         # Sort them by confidence score
-        cls_dets = sorted(cls_dets, key=lambda k: -k[1][-1])
+        cls_dets = sorted(cls_dets, key=lambda k: -k[1][-2])
 
         # For tracking which gt boxes of this class have already been matched
         gt_matched = [[False for _ in im_gts[label]] for im_gts in gt_boxes]
@@ -104,7 +106,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
 
             # Get best matching gt box
             for gt_box_idx, gt_box in enumerate(im_gts):
-                gt_box_iou = get_iou(det_pred[:-1], gt_box)
+                gt_box_iou = get_iou(det_pred[:-2], gt_box)
                 if gt_box_iou > max_iou_found:
                     max_iou_found = gt_box_iou
                     max_iou_gt_idx = gt_box_idx
@@ -115,6 +117,16 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
                 tp[det_idx] = 1
                 # If tp then we set this gt box as matched
                 gt_matched[im_idx][max_iou_gt_idx] = True
+
+            # append det_idx, image name, bbox, score, max iou found, tp, fp into det_df
+            det_df.append([det_idx, det_pred[5], det_pred[0], det_pred[1], det_pred[2],
+                           det_pred[3], det_pred[4], max_iou_found, tp[det_idx], 
+                           fp[det_idx]])
+            
+        # Convert det_df to pandas dataframe and save as csv to GPU path
+        det_df = pandas.DataFrame(det_df)
+        det_df.to_csv('/home/nam27/Dissertation/results')
+        
         # Cumulative tp and fp
         tp = np.cumsum(tp)
         fp = np.cumsum(fp)
@@ -179,7 +191,7 @@ def load_model_and_dataset(args):
     if device == 'cuda':
         torch.cuda.manual_seed_all(seed)
 
-    citypersons = CitypersonsDataset('test', im_dir=dataset_config['im_test_path'], ann_file=dataset_config['ann_test_path'])
+    citypersons = CitypersonsDataset('test', im_dir=dataset_config['im_test_path'], ann_dir=dataset_config['ann_test_path'])
     test_dataset = DataLoader(citypersons, batch_size=1, shuffle=False)
 
     if args.use_resnet50_fpn:
@@ -211,19 +223,14 @@ def load_model_and_dataset(args):
 
     faster_rcnn_model.eval()
     faster_rcnn_model.to(device)
-
-    #THIS IS WHERE I SPECIFY WHICH CUSTOM PRETRAINED MODEL I WILL USE TO TEST
-    # Load the model from the specified checkpoint path
-    faster_rcnn_model.load_state_dict(torch.load(args.checkpoint_path, map_location=device))
-
-    #if args.use_resnet50_fpn:
-    #    faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
-    #                                                              'tv_frcnn_r50fpn_' + train_config['ckpt_name']),
-    #                                                 map_location=device))
-    #else:
-    #    faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
-    #                                                              'tv_frcnn_' + train_config['ckpt_name']),
-    #                                                 map_location=device))
+    if args.use_resnet50_fpn:
+        faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
+                                                                  'tv_frcnn_r50fpn_' + train_config['ckpt_name']),
+                                                     map_location=device))
+    else:
+        faster_rcnn_model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
+                                                                  'tv_frcnn_' + train_config['ckpt_name']),
+                                                     map_location=device))
     return faster_rcnn_model, citypersons, test_dataset
 
 
@@ -331,7 +338,7 @@ def evaluate_map(args):
             label = labels[idx].detach().cpu().item()
             score = scores[idx].detach().cpu().item()
             label_name = citypersons.idx2label[label]
-            pred_boxes[label_name].append([x1, y1, x2, y2, score])
+            pred_boxes[label_name].append([x1, y1, x2, y2, score, im_name])
         for idx, box in enumerate(target_boxes):
             x1, y1, x2, y2 = box.detach().cpu().numpy()
             label = target_labels[idx].detach().cpu().item()
@@ -358,10 +365,6 @@ if __name__ == '__main__':
                         default=True, type=bool)
     parser.add_argument('--use_resnet50_fpn', dest='use_resnet50_fpn',
                         default=True, type=bool)
-    # add a required argument to specify the path of the pretrained model checkpoint to test on
-    parser.add_argument('--checkpoint_path', dest='checkpoint_path',
-                    required=True, type=str,
-                    help='Path to the custom pretrained model checkpoint')
     args = parser.parse_args()
     
     if args.infer_samples:
