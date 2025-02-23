@@ -125,7 +125,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
             
         # Convert det_df to pandas dataframe and save as csv to GPU path
         det_df = pandas.DataFrame(det_df_list)
-        det_df = det.df.rename(columns={'0':'det_idx', '1':'filename', '2':'x1', '3':'y1', '4':'x2', '5':'y2', 
+        det_df = det_df.rename(columns={'0':'det_idx', '1':'filename', '2':'x1', '3':'y1', '4':'x2', '5':'y2', 
                                         '6':'confidence score', '7':'max_iou', '8':'tp', '9':'fp'})
         det_df.to_csv('/home/nam27/Dissertation/results/det_df.csv')
         
