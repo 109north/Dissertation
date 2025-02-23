@@ -249,11 +249,24 @@ def infer(args):
         os.mkdir(output_dir)
     faster_rcnn_model, citypersons, test_dataset = load_model_and_dataset(args)
 
-    for sample_count in tqdm(range(10)):
-        random_idx = random.randint(0, len(citypersons))
-        im, target, fname = citypersons[random_idx]
-        im = im.unsqueeze(0).float().to(device)
+    
+    
+    #extract the least confidence prediction boxes. the worst 6
+    det_df_path = '/home/nam27/Dissertation/results/det_df.csv'
+    det_df = pandas.read_csv(det_df_path)
+    last_6_filenames = list(det_df.tail(6)['filename'])
 
+    #NO LONGER USING RANDOM SAMPLES
+    #for sample_count in tqdm(range(10)):
+    #    random_idx = random.randint(0, len(citypersons))
+
+    for fname in last_6_filenames:
+        fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
+        matching_index = [i for i, info in enumerate(dataset.images_info) if info['filename'] == fname] #find the index of the corresponding filename
+        index = matching_index[0]
+        im, target, _ = citypersons[index]
+        im = im.unsqueeze(0).float().to(device)
+        
         gt_im = cv2.imread(fname)
         gt_im_copy = gt_im.copy()
 
@@ -281,7 +294,7 @@ def infer(args):
                         color=[0, 0, 0],
                         fontFace=cv2.FONT_HERSHEY_PLAIN)
         cv2.addWeighted(gt_im_copy, 0.7, gt_im, 0.3, 0, gt_im)
-        cv2.imwrite('{}/output_frcnn_gt_{}.png'.format(output_dir, sample_count), gt_im)
+        cv2.imwrite('{}/worst_six_output_gt_{}.png'.format(output_dir, sample_count), gt_im)
 
         # Getting predictions from trained model
         frcnn_output = faster_rcnn_model(im, None)[0]
@@ -315,7 +328,84 @@ def infer(args):
                         color=[0, 0, 0],
                         fontFace=cv2.FONT_HERSHEY_PLAIN)
         cv2.addWeighted(im_copy, 0.7, im, 0.3, 0, im)
-        cv2.imwrite('{}/output_frcnn_{}.jpg'.format(output_dir, sample_count), im)
+        cv2.imwrite('{}/worst_six_output_{}.jpg'.format(output_dir, sample_count), im)
+
+
+    #extract the BEST TWO results
+    best_2_filenames = list(det_df.head(2)['filename'])
+
+    for fname in best_2_filenames:
+        fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
+        matching_index = [i for i, info in enumerate(dataset.images_info) if info['filename'] == fname] #find the index of the corresponding filename
+        index = matching_index[0]
+        im, target, _ = citypersons[index]
+        im = im.unsqueeze(0).float().to(device)
+        
+        gt_im = cv2.imread(fname)
+        gt_im_copy = gt_im.copy()
+
+        # Saving images with ground truth boxes
+        for idx, box in enumerate(target['bboxes']):
+            x1, y1, x2, y2 = box.detach().cpu().numpy()
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+            cv2.rectangle(gt_im, (x1, y1), (x2, y2), thickness=2, color=[0, 255, 0])
+            cv2.rectangle(gt_im_copy, (x1, y1), (x2, y2), thickness=2, color=[0, 255, 0])
+            text = citypersons.idx2label[target['labels'][idx].detach().cpu().item()]
+            text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
+            text_w, text_h = text_size
+            cv2.rectangle(gt_im_copy, (x1, y1), (x1 + 10 + text_w, y1 + 10 + text_h), [255, 255, 255], -1)
+            cv2.putText(gt_im, text=citypersons.idx2label[target['labels'][idx].detach().cpu().item()],
+                        org=(x1 + 5, y1 + 15),
+                        thickness=1,
+                        fontScale=1,
+                        color=[0, 0, 0],
+                        fontFace=cv2.FONT_HERSHEY_PLAIN)
+            cv2.putText(gt_im_copy, text=text,
+                        org=(x1 + 5, y1 + 15),
+                        thickness=1,
+                        fontScale=1,
+                        color=[0, 0, 0],
+                        fontFace=cv2.FONT_HERSHEY_PLAIN)
+        cv2.addWeighted(gt_im_copy, 0.7, gt_im, 0.3, 0, gt_im)
+        cv2.imwrite('{}/best_two_output_gt_{}.png'.format(output_dir, sample_count), gt_im)
+
+        # Getting predictions from trained model
+        frcnn_output = faster_rcnn_model(im, None)[0]
+        boxes = frcnn_output['boxes']
+        labels = frcnn_output['labels']
+        scores = frcnn_output['scores']
+        im = cv2.imread(fname)
+        im_copy = im.copy()
+
+        # Saving images with predicted boxes
+        for idx, box in enumerate(boxes):
+            x1, y1, x2, y2 = box.detach().cpu().numpy()
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            cv2.rectangle(im, (x1, y1), (x2, y2), thickness=2, color=[0, 0, 255])
+            cv2.rectangle(im_copy, (x1, y1), (x2, y2), thickness=2, color=[0, 0, 255])
+            text = '{} : {:.2f}'.format(citypersons.idx2label[labels[idx].detach().cpu().item()],
+                                        scores[idx].detach().cpu().item())
+            text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
+            text_w, text_h = text_size
+            cv2.rectangle(im_copy, (x1, y1), (x1 + 10 + text_w, y1 + 10 + text_h), [255, 255, 255], -1)
+            cv2.putText(im, text=text,
+                        org=(x1 + 5, y1 + 15),
+                        thickness=1,
+                        fontScale=1,
+                        color=[0, 0, 0],
+                        fontFace=cv2.FONT_HERSHEY_PLAIN)
+            cv2.putText(im_copy, text=text,
+                        org=(x1 + 5, y1 + 15),
+                        thickness=1,
+                        fontScale=1,
+                        color=[0, 0, 0],
+                        fontFace=cv2.FONT_HERSHEY_PLAIN)
+        cv2.addWeighted(im_copy, 0.7, im, 0.3, 0, im)
+        cv2.imwrite('{}/best_two_output_{}.jpg'.format(output_dir, sample_count), im)
+
+
+
 
 
 def evaluate_map(args):
@@ -376,14 +466,14 @@ if __name__ == '__main__':
                     required=True, type=str,
                     help='Path to the custom pretrained model checkpoint')
     args = parser.parse_args()
-    
-    if args.infer_samples:
-        infer(args)
-    else:
-        print('Not Inferring for samples as `infer_samples` argument is False')
 
     if args.evaluate:
         evaluate_map(args)
     else:
         print('Not Evaluating as `evaluate` argument is False')
+    
+    if args.infer_samples:
+        infer(args)
+    else:
+        print('Not Inferring for samples as `infer_samples` argument is False')
 
