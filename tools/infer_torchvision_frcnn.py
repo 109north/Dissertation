@@ -262,7 +262,7 @@ def infer(args):
 
     for fname in last_6_filenames:
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
-        matching_index = [i for i, info in enumerate(dataset.images_info) if info['filename'] == fname] #find the index of the corresponding filename
+        matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
         index = matching_index[0]
         im, target, _ = citypersons[index]
         im = im.unsqueeze(0).float().to(device)
@@ -336,7 +336,7 @@ def infer(args):
 
     for fname in best_2_filenames:
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
-        matching_index = [i for i, info in enumerate(dataset.images_info) if info['filename'] == fname] #find the index of the corresponding filename
+        matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
         index = matching_index[0]
         im, target, _ = citypersons[index]
         im = im.unsqueeze(0).float().to(device)
