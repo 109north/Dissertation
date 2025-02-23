@@ -69,7 +69,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
     all_aps = {}
     # average precisions for ALL classes
     aps = []
-    det_df = []
+    det_df_list = []
     for idx, label in enumerate(gt_labels):
         # Get detection predictions of this class
         cls_dets = [
@@ -119,12 +119,12 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
                 gt_matched[im_idx][max_iou_gt_idx] = True
 
             # append det_idx, image name, bbox, score, max iou found, tp, fp into det_df
-            det_df.append([det_idx, det_pred[5], det_pred[0], det_pred[1], det_pred[2],
+            det_df_list.append([det_idx, det_pred[5], det_pred[0], det_pred[1], det_pred[2],
                            det_pred[3], det_pred[4], max_iou_found, tp[det_idx], 
                            fp[det_idx]])
             
         # Convert det_df to pandas dataframe and save as csv to GPU path
-        det_df = pandas.DataFrame(det_df)
+        det_df = pandas.DataFrame(det_df_list)
         det_df.to_csv('/home/nam27/Dissertation/results/det_df.csv')
         
         # Cumulative tp and fp
