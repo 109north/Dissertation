@@ -261,6 +261,7 @@ def infer(args):
     #    random_idx = random.randint(0, len(citypersons))
 
     for fname in last_6_filenames:
+        sample_count = 0
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
         matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
         index = matching_index[0]
@@ -330,11 +331,14 @@ def infer(args):
         cv2.addWeighted(im_copy, 0.7, im, 0.3, 0, im)
         cv2.imwrite('{}/worst_six_output_{}.jpg'.format(output_dir, sample_count), im)
 
+        sample_count += 1
+
 
     #extract the BEST TWO results
     best_2_filenames = list(det_df.head(2)['filename'])
 
     for fname in best_2_filenames:
+        sample_count = 0
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
         matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
         index = matching_index[0]
@@ -403,6 +407,8 @@ def infer(args):
                         fontFace=cv2.FONT_HERSHEY_PLAIN)
         cv2.addWeighted(im_copy, 0.7, im, 0.3, 0, im)
         cv2.imwrite('{}/best_two_output_{}.jpg'.format(output_dir, sample_count), im)
+
+        sample_count += 1
 
 
 
