@@ -125,7 +125,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
             
         # Convert det_df to pandas dataframe and save as csv to GPU path
         det_df = pandas.DataFrame(det_df)
-        det_df.to_csv('/home/nam27/Dissertation/results')
+        det_df.to_csv('/home/nam27/Dissertation/results/det_df.csv')
         
         # Cumulative tp and fp
         tp = np.cumsum(tp)
