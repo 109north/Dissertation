@@ -146,9 +146,17 @@ if __name__ == '__main__':
     parser.add_argument('--use_resnet50_fpn', dest='use_resnet50_fpn',
                         default=True, type=bool)
     parser.add_argument('--flip', dest='flip',
-                        default=False, type=bool)
+                        default=False, type=bool, 
+                        help='Run augmentation with flipping?')
+    parser.add_argument('--flip_percent, dest='flip_percent',
+                        default=0.25, type=float,
+                        help='percent chance for a photo to be duplicated and flipped')
     parser.add_argument('--blur', dest='blur',
-                        default=False, type=bool)
+                        default=False, type=bool, 
+                        help='Run augmentation with blurring?')
+    parser.add_argument('--blur_percent', dest='blur_percent',
+                        default=0.25, type=float,
+                        help='percent chance for a photo to be duplicated and blurred')
     args = parser.parse_args(args=[] if sys.argv[0].endswith('ipykernel_launcher.py') else sys.argv[1:])
     train(args)
 
