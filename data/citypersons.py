@@ -14,7 +14,7 @@ from config.config import args
 
 import torch
 import torchvision
-from PIL import Image
+from PIL import Image, ImageFilter
 from tqdm import tqdm
 from torch.utils.data.dataset import Dataset
 
