@@ -81,10 +81,36 @@ def load_images_and_anns(im_dir, ann_file):
             det['label'] = list(row['class_label'])[i] # **FOR NOW IM JUST GOING TO LABEL THEM WITH THE NUMBERS**
             det['bbox'] = bbox
             detections.append(det)
-
             #print(F"box {i} image {im_info['img_id']}")
+
         im_info['detections'] = detections
         im_infos.append(im_info)
+        
+        if self.split=='train' and args.flip: #if --flip=True in CLI arguments in training script, and only if we are in training
+            if random.random() < args.flip_percent: #if random value between 0 and 1 is within our flip percent
+                flipped_im_info = im_info.copy() 
+                flipped_im_info['img_id'] += '_flipped' #change the image id
+                flipped_im_info['filename'] = None  # No actual file, just augment in memory
+                flipped_detections = []
+
+                for det in detections:
+                    # flip the bbox
+                    x1, y1, x2, y2 = det['bbox']
+                    bbox_width = x2 - x1 
+                    flipped_x1 = w - x2
+                    flipped_x2 = flipped_x1 + bbox_width
+                    flipped_detections.append({'label': det['label'], 'bbox': [flipped_x1, y1, flipped_x2, y2]})
+            
+                flipped_im_info['detections'] = flipped_detections
+                im_infos.append(flipped_im_info) # append the flipped info into all the image infos
+    `    
+        if self.split=='train' and args.blur: # if --blur=True in CLI arguments in training script, and only if we are in training
+            if random.random() < args.blur_percent: #if random value between 0 and 1 is within our blur percent
+                blurred_im_info = im_info.copy()
+                blurred_im_info['img_id'] += '_blurred'
+                blurred_im_info['filename'] = None  # No actual file, just augment in memory
+                blurred_im_info['detections'] = detections  # No changes to bbox
+                im_infos.append(blurred_im_info)
     print('Total {} images found'.format(len(im_infos)))
     return im_infos
 
@@ -108,23 +134,19 @@ class CitypersonsDataset(Dataset):
     def __getitem__(self, index):
         im_info = self.images_info[index]
         im = Image.open(im_info['filename'])
-        to_flip = False
-        # doing random flips of images on the training data
-        #if self.split == 'train' and random.random() < 0.5:
-        #    to_flip = True
-        #    im = im.transpose(Image.FLIP_LEFT_RIGHT)
+        if im_info['filename'] is not None: # if it is NOT augmented data
+            im = Image.open(im_info['filename'])
+        elif im_info['img_id'][-8:] == '_flipped': # else if it is a flipped image:
+            original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_flipped', ''))
+            im = Image.open(original_im_info['filename']).transpose(Image.FLIP_LEFT_RIGHT) # flip the image
+        elif im_info['img_id'][-8:] == '_blurred': # else if it is a blurred image:
+            original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_blurred', ''))
+            im = Image.open(original_im_info['filename']).filter(ImageFilter.GaussianBlur(radius=2)) # blur the image with a radius of 2
+
         im_tensor = torchvision.transforms.ToTensor()(im)
         targets = {}
         targets['bboxes'] = torch.as_tensor([detection['bbox'] for detection in im_info['detections']])
         targets['labels'] = torch.as_tensor([detection['label'] for detection in im_info['detections']])
-        # if image is flipped, must also flip the bboxes
-        if to_flip:
-            for idx, box in enumerate(targets['bboxes']):
-                x1, y1, x2, y2 = box
-                w = x2-x1
-                im_w = im_tensor.shape[-1]
-                x1 = im_w - x1 - w
-                x2 = x1 + w
-                targets['bboxes'][idx] = torch.as_tensor([x1, y1, x2, y2])
+
         return im_tensor, targets, im_info['filename']
         
