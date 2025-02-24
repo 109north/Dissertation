@@ -10,7 +10,7 @@ import random
 import pandas as pd
 import cv2
 import warnings
-from tools.train_torchvision_frcnn.py import args
+from config.config import args
 
 import torch
 import torchvision
