@@ -17,7 +17,7 @@ from PIL import Image
 from tqdm import tqdm
 from torch.utils.data.dataset import Dataset
 
-def load_images_and_anns(im_dir, ann_file):
+def load_images_and_anns(im_dir, ann_file, split):
     r"""
     Method to get the csv file and for each line
     get all the objects and their ground truth detection
@@ -86,7 +86,7 @@ def load_images_and_anns(im_dir, ann_file):
         im_info['detections'] = detections
         im_infos.append(im_info)
         
-        if self.split=='train' and args.flip: #if --flip=True in CLI arguments in training script, and only if we are in training
+        if split=='train' and args.flip: #if --flip=True in CLI arguments in training script, and only if we are in training
             if random.random() < args.flip_percent: #if random value between 0 and 1 is within our flip percent
                 flipped_im_info = im_info.copy() 
                 flipped_im_info['img_id'] += '_flipped' #change the image id
@@ -104,7 +104,7 @@ def load_images_and_anns(im_dir, ann_file):
                 flipped_im_info['detections'] = flipped_detections
                 im_infos.append(flipped_im_info) # append the flipped info into all the image infos
         
-        if self.split=='train' and args.blur: # if --blur=True in CLI arguments in training script, and only if we are in training
+        if split=='train' and args.blur: # if --blur=True in CLI arguments in training script, and only if we are in training
             if random.random() < args.blur_percent: #if random value between 0 and 1 is within our blur percent
                 blurred_im_info = im_info.copy()
                 blurred_im_info['img_id'] += '_blurred'
@@ -126,7 +126,7 @@ class CitypersonsDataset(Dataset):
         self.label2idx = {classes[idx]: idx for idx in range(len(classes))}
         self.idx2label = {idx: classes[idx] for idx in range(len(classes))}
         print(self.idx2label)
-        self.images_info = load_images_and_anns(im_dir, ann_file)
+        self.images_info = load_images_and_anns(im_dir, ann_file, self.split)
     
     def __len__(self):
         return len(self.images_info)
