@@ -134,7 +134,6 @@ class CitypersonsDataset(Dataset):
     
     def __getitem__(self, index):
         im_info = self.images_info[index]
-        im = Image.open(im_info['filename'])
         if im_info['filename'] is not None: # if it is NOT augmented data
             im = Image.open(im_info['filename'])
         elif im_info['img_id'][-8:] == '_flipped': # else if it is a flipped image:
