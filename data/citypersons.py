@@ -103,7 +103,7 @@ def load_images_and_anns(im_dir, ann_file):
             
                 flipped_im_info['detections'] = flipped_detections
                 im_infos.append(flipped_im_info) # append the flipped info into all the image infos
-    `    
+        
         if self.split=='train' and args.blur: # if --blur=True in CLI arguments in training script, and only if we are in training
             if random.random() < args.blur_percent: #if random value between 0 and 1 is within our blur percent
                 blurred_im_info = im_info.copy()
