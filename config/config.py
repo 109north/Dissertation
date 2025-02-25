@@ -1,11 +1,13 @@
 import argparse
 
 parser = argparse.ArgumentParser()
-# arguments for train_torchvision_frcnn.py
+# arguments used by both documents
 parser.add_argument('--config', dest='config_path',
-                        default='config/citypersons.yaml', type=str)
+                    default='config/citypersons.yaml', type=str)
 parser.add_argument('--use_resnet50_fpn', dest='use_resnet50_fpn',
                     default=True, type=bool)
+
+# arguments for train_torchvision_frcnn.py
 parser.add_argument('--flip', dest='flip',
                         default=False, type=bool, 
                         help='Run augmentation with flipping?')
@@ -18,9 +20,8 @@ parser.add_argument('--blur', dest='blur',
 parser.add_argument('--blur_percent', dest='blur_percent',
                     default=0.25, type=float,
                     help='percent chance for a photo to be duplicated and blurred')
+
 # arguments for infer_torchvision_frcnn.py
-parser.add_argument('--config', dest='config_path',
-                    default='config/citypersons.yaml', type=str)
 parser.add_argument('--evaluate', dest='evaluate',
                     default=False, type=bool)
 parser.add_argument('--infer_samples', dest='infer_samples',
