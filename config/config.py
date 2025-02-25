@@ -27,6 +27,6 @@ parser.add_argument('--evaluate', dest='evaluate',
 parser.add_argument('--infer_samples', dest='infer_samples',
                     default=True, type=bool)
 parser.add_argument('--checkpoint_path', dest='checkpoint_path',
-                    required=True, type=str,
+                    type=str,
                     help='Path to the custom pretrained model checkpoint')
 args = parser.parse_args()
