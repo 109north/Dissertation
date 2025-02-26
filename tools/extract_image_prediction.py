@@ -15,10 +15,10 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 
 
-
 # RUN FILE WITH --checkpoint_path argument for where to get the model from.
 # and --select_image_filename the filename of the iamge
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def load_model_and_dataset(args):
