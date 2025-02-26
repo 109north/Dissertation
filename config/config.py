@@ -32,6 +32,7 @@ parser.add_argument('--checkpoint_path', dest='checkpoint_path',
 
 # arguments for extract_image
 parser.add_argument('--select_image_filename', dest='select_image_filename',
-                    default=True, type=str)
+                    default=True, type=str,
+                   help="ensure you enter the entire filepath (relative to the GPU")
 
 args = parser.parse_args()
