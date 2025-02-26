@@ -103,11 +103,6 @@ def get_image(args):
     faster_rcnn_model, citypersons, test_dataset = load_model_and_dataset(args)
 
     fname = str(args.select_image_filename)
-    print(f"Looking for filename: {fname}")
-    print("Available filenames in dataset:")
-    for info in citypersons.images_info[:5]:  # Print first 5 filenames for debugging
-        print(info['filename'])
-
 
     matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
     index = matching_index[0]
