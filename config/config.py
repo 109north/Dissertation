@@ -30,3 +30,7 @@ parser.add_argument('--checkpoint_path', dest='checkpoint_path',
                     type=str,
                     help='Path to the custom pretrained model checkpoint')
 args = parser.parse_args()
+
+# arguments for extract_image
+parser.add_argument('--select_image_filename', dest='select_image_filename',
+                    default=True, type=str)
