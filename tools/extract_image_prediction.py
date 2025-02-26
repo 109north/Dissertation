@@ -102,7 +102,7 @@ def get_image(args):
     os.mkdir(output_dir)
   faster_rcnn_model, citypersons, test_dataset = load_model_and_dataset(args)
 
-  fname = args.select_image_filename
+  fname = str(args.select_image_filename)
 
   matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
   index = matching_index[0]
