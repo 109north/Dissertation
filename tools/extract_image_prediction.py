@@ -136,7 +136,7 @@ def get_image(args):
                     color=[0, 0, 0],
                     fontFace=cv2.FONT_HERSHEY_PLAIN)
     cv2.addWeighted(gt_im_copy, 0.7, gt_im, 0.3, 0, gt_im)
-    cv2.imwrite('{}/extract_gt_{}.png'.format(output_dir, fname), gt_im)
+    cv2.imwrite('{}/extract_gt_{}.png'.format(output_dir, fname[-30:-17]), gt_im)
 
     # Getting predictions from trained model
     frcnn_output = faster_rcnn_model(im, None)[0]
@@ -170,7 +170,7 @@ def get_image(args):
                     color=[0, 0, 0],
                     fontFace=cv2.FONT_HERSHEY_PLAIN)
     cv2.addWeighted(im_copy, 0.7, im, 0.3, 0, im)
-    cv2.imwrite('{}/extract_{}.jpg'.format(output_dir, fname), im)
+    cv2.imwrite('{}/extract_{}.jpg'.format(output_dir, fname[-30:-17]), im)
 
 
 
