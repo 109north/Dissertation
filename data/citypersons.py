@@ -63,7 +63,8 @@ def load_images_and_anns(im_dir, ann_file, split):
         #image_tensor = torch.from_numpy(image_RGB).float().permute(2, 0, 1).to("cuda") / 255.0  # Normalize to [0,1]
         im = Image.open(im_info['filename'])
         im_tensor = torchvision.transforms.ToTensor()(im)
-        h, w = im_tensor.shape[:2] # get height and width of image
+        #h, w = im_tensor.shape[:2] # get height and width of image
+        w, h = im.size
         im_info['width'] = w
         im_info['height'] = h
         detections = []
@@ -97,9 +98,12 @@ def load_images_and_anns(im_dir, ann_file, split):
                 for det in detections:
                     # flip the bbox
                     x1, y1, x2, y2 = det['bbox']
-                    bbox_width = x2 - x1 
                     flipped_x1 = w - x2
-                    flipped_x2 = flipped_x1 + bbox_width
+                    flipped_x2 = w - x1
+                    #bbox_width = x2 - x1 
+                    #flipped_x1 = w - x2
+                    #flipped_x2 = flipped_x1 + bbox_width
+                    
                     flipped_detections.append({'label': det['label'], 'bbox': [flipped_x1, y1, flipped_x2, y2]})
             
                 flipped_im_info['detections'] = flipped_detections
