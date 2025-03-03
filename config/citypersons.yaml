@@ -32,10 +32,10 @@ model_params:
   roi_pos_fraction : 0.25
 
 train_params:
-  task_name: 'frcnn_citypersons_Aug3'
+  task_name: 'frcnn_citypersons_Aug4'
   seed : 1111
   acc_steps : 1 # increase you want to get gradients from >1 steps(kind of mimicking >1 batch size)
   num_epochs: 20
   lr_steps : [12, 16]
   lr: 0.001
-  ckpt_name: 'frcnn_citypersons_Aug3.pth'
+  ckpt_name: 'frcnn_citypersons_Aug4.pth'
