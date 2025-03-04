@@ -14,7 +14,7 @@ from config.config import args
 
 import torch
 import torchvision
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageEnhance
 from tqdm import tqdm
 from torch.utils.data.dataset import Dataset
 
@@ -116,6 +116,23 @@ def load_images_and_anns(im_dir, ann_file, split):
                 blurred_im_info['filename'] = None  # No actual file, just augment in memory
                 blurred_im_info['detections'] = detections  # No changes to bbox
                 im_infos.append(blurred_im_info)
+
+        if split=='train' and args.brightness: # if --brightness=True in CLI arguments and only if we are in training
+            if random.random() < args.brightness_percent:
+                brightness_im_info = im_info.copy()
+                brightness_factor = random.uniform(0.5, 1.5)  # Randomly choose between darkening (0.5) and brightening (1.5)
+                
+                if brightness_factor > 1.0:
+                    brightness_im_info['img_id'] += '_brightened'
+                else:
+                    brightness_im_info['img_id'] += '_darkened'
+
+                brightness_im_info['filename'] = None  # No actual file, just augment in memory
+                brightness_im_info['detections'] = detections  # No changes to bbox
+                brightness_im_info['brightness_factor'] = brightness_factor  # Store brightness factor
+                im_infos.append(brightness_im_info)
+
+            
     print('Total {} images found'.format(len(im_infos)))
     return im_infos
 
@@ -146,6 +163,13 @@ class CitypersonsDataset(Dataset):
         elif im_info['img_id'][-8:] == '_blurred': # else if it is a blurred image:
             original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_blurred', ''))
             im = Image.open(original_im_info['filename']).filter(ImageFilter.GaussianBlur(radius=2)) # blur the image with a radius of 2
+        elif im_info['img_id'][-11:] == '_brightened' | im_info['img_id'][-9:] == '_darkened': # else if its brightness aug
+            original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_brightened', '').replace('_darkened', ''))
+            im = Image.open(original_im_info['filename'])
+            enhancer = ImageEnhance.Brightness(im)
+            im = enhancer.enhance(im_info['brightness_factor'])  # Apply brightness factor
+
+            
 
         im_tensor = torchvision.transforms.ToTensor()(im)
         targets = {}
