@@ -20,6 +20,12 @@ parser.add_argument('--blur', dest='blur',
 parser.add_argument('--blur_percent', dest='blur_percent',
                     default=0.25, type=float,
                     help='percent chance for a photo to be duplicated and blurred')
+parser.add_argument('--brightness', dest='brightness',
+                    default=False, type=bool,
+                    help='Run augmentation with brightness?')
+parser.add_argument('--brightness_percent', dest='brightness_percent',
+                    default=0.25, type=float,
+                    help='percent change for a photo to be duplicated and brightened/darkened')
 
 # arguments for infer_torchvision_frcnn.py
 parser.add_argument('--evaluate', dest='evaluate',
