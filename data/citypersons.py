@@ -18,6 +18,8 @@ from PIL import Image, ImageFilter, ImageEnhance
 from tqdm import tqdm
 from torch.utils.data.dataset import Dataset
 
+from torchvision import transforms
+
 def load_images_and_anns(im_dir, ann_file, split):
     r"""
     Method to get the csv file and for each line
@@ -132,6 +134,14 @@ def load_images_and_anns(im_dir, ann_file, split):
                 brightness_im_info['brightness_factor'] = brightness_factor  # Store brightness factor
                 im_infos.append(brightness_im_info)
 
+        if split=='train' and args.augmix: #if --augmix=True in CLI and only if we are in training
+            if random.random() < args.augmix_percent:
+                augmix_im_info = im_info.copy()
+                augmix_im_info['img_id'] += '_augmix'  # Tag the image
+                augmix_im_info['filename'] = None  # No actual file, augment in memory
+                augmix_im_info['detections'] = detections  # No changes to bounding boxes
+                im_infos.append(augmix_im_info)  # Add AugMix-augmented image alongside original
+
             
     print('Total {} images found'.format(len(im_infos)))
     return im_infos
@@ -168,6 +178,10 @@ class CitypersonsDataset(Dataset):
             im = Image.open(original_im_info['filename'])
             enhancer = ImageEnhance.Brightness(im)
             im = enhancer.enhance(im_info['brightness_factor'])  # Apply brightness factor
+        elif im_info['im_id'][-7:] == '_augmix': # else if it is an augmix image
+            original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_augmix', ''))
+            im = Image.open(original_im_info['filename'])
+            im = transforms.AugMix(im)  # Apply AugMix
 
             
 
