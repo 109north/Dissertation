@@ -178,7 +178,7 @@ class CitypersonsDataset(Dataset):
             im = Image.open(original_im_info['filename'])
             enhancer = ImageEnhance.Brightness(im)
             im = enhancer.enhance(im_info['brightness_factor'])  # Apply brightness factor
-        elif im_info['im_id'][-7:] == '_augmix': # else if it is an augmix image
+        elif im_info['img_id'][-7:] == '_augmix': # else if it is an augmix image
             original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_augmix', ''))
             im = Image.open(original_im_info['filename'])
             im = transforms.AugMix(im)  # Apply AugMix
