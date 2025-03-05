@@ -26,6 +26,12 @@ parser.add_argument('--brightness', dest='brightness',
 parser.add_argument('--brightness_percent', dest='brightness_percent',
                     default=0.25, type=float,
                     help='percent change for a photo to be duplicated and brightened/darkened')
+parser.add_argument('--augmix', dest='augmix',
+                    default=False, type=bool,
+                    help='Run augmentation with AugMix?')
+parser.add_argument('--augmix_percent', dest='augmix_percent',
+                    default=0.25, type=float,
+                    help='percent chance for a photo to be duplicated and AugMixed')
 
 # arguments for infer_torchvision_frcnn.py
 parser.add_argument('--evaluate', dest='evaluate',
