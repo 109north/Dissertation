@@ -131,7 +131,8 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
         for im_idx, im_gts in enumerate(gt_boxes):
             for gt_idx, (gt_box, matched) in enumerate(zip(im_gts[label], gt_matched[im_idx])):
                 if not matched:
-                    fn_df_list.append([im_idx, label, gt_box[0], gt_box[1], gt_box[2], gt_box[3]])
+                    filename = det_boxes[im_idx].get('filename', f'image_{im_idx}')
+                    fn_df_list.append([filename, gt_box[0], gt_box[1], gt_box[2], gt_box[3]])
             
         # Convert det_df to pandas dataframe and save as csv to GPU path
         det_df = pandas.DataFrame(det_df_list)
@@ -139,7 +140,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
                                         6:'confidence score', 7:'max_iou', 8:'tp', 9:'fp'})
         det_df.to_csv('/home/nam27/Dissertation/results/det_df.csv')
 
-        fn_df = pandas.DataFrame(fn_df_list, columns=['image_idx', 'label', 'x1', 'y1', 'x2', 'y2'])
+        fn_df = pandas.DataFrame(fn_df_list, columns=['filename', 'x1', 'y1', 'x2', 'y2'])
         fn_df.to_csv('/home/nam27/Dissertation/results/fn_df.csv')
         
         # Cumulative tp and fp
