@@ -110,7 +110,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
 
             # Get best matching gt box
             for gt_box_idx, gt_box in enumerate(im_gts):
-                gt_box_iou = get_iou(det_pred[:-2], gt_box)
+                gt_box_iou = get_iou(det_pred[:-2], gt_box[:-1])
                 if gt_box_iou > max_iou_found:
                     max_iou_found = gt_box_iou
                     max_iou_gt_idx = gt_box_idx
