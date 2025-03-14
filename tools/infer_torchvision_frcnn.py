@@ -46,8 +46,8 @@ def get_iou(det, gt):
 def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
     # det_boxes = [
     #   {
-    #       'person' : [[x1, y1, x2, y2, score], ...],
-    #       'car' : [[x1, y1, x2, y2, score], ...]
+    #       'person' : [[x1, y1, x2, y2, score, im_name], ...],
+    #       'car' : [[x1, y1, x2, y2, score, im_name], ...]
     #   }
     #   {det_boxes_img_2},
     #   ...
@@ -56,8 +56,8 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
     #
     # gt_boxes = [
     #   {
-    #       'person' : [[x1, y1, x2, y2], ...],
-    #       'car' : [[x1, y1, x2, y2], ...]
+    #       'person' : [[x1, y1, x2, y2, im_name], ...],
+    #       'car' : [[x1, y1, x2, y2, im_name], ...]
     #   },
     #   {gt_boxes_img_2},
     #   ...
@@ -131,8 +131,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
         for im_idx, im_gts in enumerate(gt_boxes):
             for gt_idx, (gt_box, matched) in enumerate(zip(im_gts[label], gt_matched[im_idx])):
                 if not matched:
-                    filename = det_boxes[im_idx].get('filename', f'image_{im_idx}')
-                    fn_df_list.append([filename, gt_box[0], gt_box[1], gt_box[2], gt_box[3]])
+                    fn_df_list.append([gt_box[4], gt_box[0], gt_box[1], gt_box[2], gt_box[3]])
             
         # Convert det_df to pandas dataframe and save as csv to GPU path
         det_df = pandas.DataFrame(det_df_list)
@@ -462,7 +461,7 @@ def evaluate_map(args):
             x1, y1, x2, y2 = box.detach().cpu().numpy()
             label = target_labels[idx].detach().cpu().item()
             label_name = citypersons.idx2label[label]
-            gt_boxes[label_name].append([x1, y1, x2, y2])
+            gt_boxes[label_name].append([x1, y1, x2, y2, im_name])
 
         gts.append(gt_boxes)
         preds.append(pred_boxes)
