@@ -70,6 +70,10 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
     # average precisions for ALL classes
     aps = []
     det_df_list = []
+    fn_df_list = [] # List to store false negatives
+    all_recalls = {}
+    all_precisions = {}
+    
     for idx, label in enumerate(gt_labels):
         # Get detection predictions of this class
         cls_dets = [
@@ -123,11 +127,20 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
                            det_pred[3], det_pred[4], max_iou_found, tp[det_idx], 
                            fp[det_idx]])
             
+        # Identify false negatives (GT boxes never matched)
+        for im_idx, im_gts in enumerate(gt_boxes):
+            for gt_idx, (gt_box, matched) in enumerate(zip(im_gts[label], gt_matched[im_idx])):
+                if not matched:
+                    fn_df_list.append([im_idx, label, gt_box[0], gt_box[1], gt_box[2], gt_box[3]])
+            
         # Convert det_df to pandas dataframe and save as csv to GPU path
         det_df = pandas.DataFrame(det_df_list)
         det_df = det_df.rename(columns={0:'det_idx', 1:'filename', 2:'x1', 3:'y1', 4:'x2', 5:'y2', 
                                         6:'confidence score', 7:'max_iou', 8:'tp', 9:'fp'})
         det_df.to_csv('/home/nam27/Dissertation/results/det_df.csv')
+
+        fn_df = pd.DataFrame(fn_df_list, columns=['image_idx', 'label', 'x1', 'y1', 'x2', 'y2'])
+        fn_df.to_csv('/home/nam27/Dissertation/results/fn_df.csv')
         
         # Cumulative tp and fp
         tp = np.cumsum(tp)
@@ -136,6 +149,9 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
         eps = np.finfo(np.float32).eps
         recalls = tp / np.maximum(num_gts, eps)
         precisions = tp / np.maximum((tp + fp), eps)
+
+        all_recalls[label] = recalls[-1] if len(recalls) > 0 else 0.0
+        all_precisions[label] = precisions[-1] if len(precisions) > 0 else 0.0
 
         if method == 'area':
             recalls = np.concatenate(([0.0], recalls, [1.0]))
@@ -169,7 +185,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
             all_aps[label] = np.nan
     # compute mAP at provided iou threshold
     mean_ap = sum(aps) / len(aps)
-    return mean_ap, all_aps
+    return mean_ap, all_aps, all_recalls, all_precisions
 
 
 def load_model_and_dataset(args):
@@ -450,10 +466,12 @@ def evaluate_map(args):
         gts.append(gt_boxes)
         preds.append(pred_boxes)
 
-    mean_ap, all_aps = compute_map(preds, gts, method='interp')
+    mean_ap, all_aps, all_recalls, all_precisions = compute_map(preds, gts, method='interp')
     print('Class Wise Average Precisions')
     for idx in range(len(citypersons.idx2label)):
         print('AP for class {} = {:.4f}'.format(citypersons.idx2label[idx], all_aps[citypersons.idx2label[idx]]))
+        print('Recall for class {} = {:.4f}'.format(citypersons.idx2label[idx], all_recalls[citypersons.idx2label[idx]]))
+        print('Precision for class {} = {:.4f}'.format(citypersons.idx2label[idx], all_precisions[citypersons.idx2label[idx]]))
     print('Mean Average Precision : {:.4f}'.format(mean_ap))
 
 
