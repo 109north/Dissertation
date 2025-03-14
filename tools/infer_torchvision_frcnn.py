@@ -139,7 +139,7 @@ def compute_map(det_boxes, gt_boxes, iou_threshold=0.5, method='area'):
                                         6:'confidence score', 7:'max_iou', 8:'tp', 9:'fp'})
         det_df.to_csv('/home/nam27/Dissertation/results/det_df.csv')
 
-        fn_df = pd.DataFrame(fn_df_list, columns=['image_idx', 'label', 'x1', 'y1', 'x2', 'y2'])
+        fn_df = pandas.DataFrame(fn_df_list, columns=['image_idx', 'label', 'x1', 'y1', 'x2', 'y2'])
         fn_df.to_csv('/home/nam27/Dissertation/results/fn_df.csv')
         
         # Cumulative tp and fp
