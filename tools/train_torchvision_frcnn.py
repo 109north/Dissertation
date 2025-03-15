@@ -176,6 +176,12 @@ if __name__ == '__main__':
     parser.add_argument('--augmix_percent', dest='augmix_percent',
                         default=0.25, type=float,
                         help='percent chance for a photo to be duplicated and AugMixed')
+    parser.add_argument('--shrink_bbox', dest='shrink_bbox',
+                        default=False, type=bool,
+                        help='Run augmentation with shrinking?')
+    parser.add_argument('--shrink_bbox_percent', dest='shrink_bbox_percent',
+                        default=0.25, type=float,
+                        help='percent chance for a photo to be duplicated and shrunken')
     args = parser.parse_args(args=[] if sys.argv[0].endswith('ipykernel_launcher.py') else sys.argv[1:])
     train(args)
 
