@@ -20,6 +20,57 @@ from torch.utils.data.dataset import Dataset
 
 from torchvision import transforms
 
+# code for person shrinking augmentation
+def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.3), shrink_prob=0.5):
+    """
+    Randomly selects bounding boxes, shrinks them down, and pastes them back within their original bounding box
+    while keeping the rest of the image unchanged.
+    
+    :param im: PIL Image
+    :param detections: List of bounding box dictionaries
+    :param scale_range: Tuple (min_scale, max_scale) for shrinking bbox
+    :param shrink_prob: Probability of shrinking each bounding box
+    :return: Image with shrunken bounding boxes and updated detections
+    """
+    w, h = im.size  # Original image size
+    im_array = np.array(im)  # Convert the original image to an array
+    new_detections = []
+
+    for det in detections:
+        if random.random() < shrink_prob:  # Apply shrinking with a given probability
+            x1, y1, x2, y2 = det['bbox']
+            person_crop = im_array[y1:y2, x1:x2]  # Extract the person region
+            
+            # Choose a random shrinking scale
+            scale = random.uniform(*scale_range)
+            new_w, new_h = max(1, int((x2 - x1) * scale)), max(1, int((y2 - y1) * scale))
+            
+            # Pick a random position INSIDE the original bounding box
+            new_x1 = random.randint(x1, max(x1, x2 - new_w))
+            new_y1 = random.randint(y1, max(y1, y2 - new_h))
+            new_x2, new_y2 = new_x1 + new_w, new_y1 + new_h
+            
+            # Black out the area inside the original bounding box
+            im_array[y1:y2, x1:x2] = 0  # Set the original area to black
+            
+            # Resize the cropped person
+            person_crop_resized = cv2.resize(person_crop, (new_w, new_h), interpolation=cv2.INTER_AREA)
+            
+            # Paste the resized person back into the blacked-out region
+            im_array[new_y1:new_y2, new_x1:new_x2] = person_crop_resized  # Paste tiny person
+            
+            # Update the bounding box to match the new size and position
+            new_detections.append({'label': det['label'], 'bbox': [new_x1, new_y1, new_x2, new_y2]})
+        else:
+            # If no shrinking, keep the original bounding box (no changes)
+            new_detections.append(det)
+
+    # Convert the NumPy array back to PIL Image
+    shrunken_im = Image.fromarray(im_array)
+    
+    return shrunken_im, new_detections
+    
+
 def load_images_and_anns(im_dir, ann_file, split):
     r"""
     Method to get the csv file and for each line
@@ -122,7 +173,7 @@ def load_images_and_anns(im_dir, ann_file, split):
         if split=='train' and args.brightness: # if --brightness=True in CLI arguments and only if we are in training
             if random.random() < args.brightness_percent:
                 brightness_im_info = im_info.copy()
-                brightness_factor = random.uniform(0.5, 1.5)  # Randomly choose between darkening (0.5) and brightening (1.5)
+                brightness_factor = random.uniform(args.bright_low, args.bright_high)  # Randomly choose between darkening (bright_low) and brightening (bright_high)
                 
                 if brightness_factor > 1.0:
                     brightness_im_info['img_id'] += '_brightened'
@@ -141,6 +192,18 @@ def load_images_and_anns(im_dir, ann_file, split):
                 augmix_im_info['filename'] = None  # No actual file, augment in memory
                 augmix_im_info['detections'] = detections  # No changes to bounding boxes
                 im_infos.append(augmix_im_info)  # Add AugMix-augmented image alongside original
+
+        if split == 'train' and args.shrink_bbox:  # If shrinking augmentation is enabled
+            if random.random() < args.shrink_bbox_percent:  # Apply with a certain probability
+                shrunken_im_info = im_info.copy()
+                shrunken_im_info['img_id'] += '_shrunken'
+                shrunken_im, shrunken_detections = shrink_bboxes_in_image(im, detections)
+
+                if shrunken_im is not None and shrunken_detections:
+                    shrunken_im_info['filename'] = None  # No actual file, augment in memory
+                    shrunken_im_info['detections'] = shrunken_detections  # Store adjusted bounding boxes
+                    im_infos.append(shrunken_im_info)  # Append augmented image
+
 
             
     print('Total {} images found'.format(len(im_infos)))
@@ -183,6 +246,12 @@ class CitypersonsDataset(Dataset):
             im = Image.open(original_im_info['filename'])
             augmix_transform = transforms.AugMix()  # Create the transform object
             im = augmix_transform(im)  # Apply AugMix to the image
+        elif im_info['img_id'][-9:] == '_shrunken':  # else if it is a shrunken image
+            original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_shrunken', ''))
+            im = Image.open(original_im_info['filename'])
+            # Apply the shrinking augmentation (shrinking bounding box)
+            im, new_detections = shrink_bboxes_in_image(im, original_im_info['detections'])
+            im_info['detections'] = new_detections  # Update the detections for the shrunken image
 
 
             
