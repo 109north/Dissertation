@@ -43,8 +43,7 @@ parser.add_argument('--checkpoint_path', dest='checkpoint_path',
                     help='Path to the custom pretrained model checkpoint')
 
 # arguments for extract_image
-parser.add_argument('--select_image_filename', dest='select_image_filename',
-                    default=True, type=str,
-                   help="ensure you enter the entire filepath (relative to the GPU")
+  parser.add_argument('--select_image_filename', dest='select_image_filename',
+                      nargs="+", type=str, help="list of image filenames")
 
 args = parser.parse_args()
