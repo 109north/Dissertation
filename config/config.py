@@ -26,6 +26,12 @@ parser.add_argument('--brightness', dest='brightness',
 parser.add_argument('--brightness_percent', dest='brightness_percent',
                     default=0.25, type=float,
                     help='percent change for a photo to be duplicated and brightened/darkened')
+parser.add_argument('--bright_low', dest='bright_low',
+                    default=0.5, type=float,
+                    help='lower bound for brightness amount (with 1 being no change)')
+parser.add_argument('--bright_high', dest='bright_high',
+                    default=1.5, type=float,
+                    help='upper bound for brightness amount (with 1 being no change)')
 parser.add_argument('--augmix', dest='augmix',
                     default=False, type=bool,
                     help='Run augmentation with AugMix?')
