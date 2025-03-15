@@ -38,6 +38,12 @@ parser.add_argument('--augmix', dest='augmix',
 parser.add_argument('--augmix_percent', dest='augmix_percent',
                     default=0.25, type=float,
                     help='percent chance for a photo to be duplicated and AugMixed')
+parser.add_argument('--shrink_bbox', dest='shrink_bbox',
+                    default=False, type=bool,
+                    help='Run augmentation with shrinking?')
+parser.add_argument('--shrink_bbox_percent', dest='shrink_bbox_percent',
+                    default=0.25, type=float,
+                    help='percent chance for a photo to be duplicated and shrunken')
 
 # arguments for infer_torchvision_frcnn.py
 parser.add_argument('--evaluate', dest='evaluate',
