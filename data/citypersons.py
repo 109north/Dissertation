@@ -39,15 +39,15 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.3), shrink_prob=0
     for det in detections:
         if random.random() < shrink_prob:  # Apply shrinking with a given probability
             x1, y1, x2, y2 = det['bbox']
-            person_crop = im_array[y1:y2, x1:x2]  # Extract the person region
+            person_crop = im_array[y1:y2, x1:x2].copy()  # Extract the person region
             
             # Choose a random shrinking scale
             scale = random.uniform(*scale_range)
             new_w, new_h = max(1, int((x2 - x1) * scale)), max(1, int((y2 - y1) * scale))
             
             # Pick a random position INSIDE the original bounding box
-            new_x1 = random.randint(x1, max(x1, x2 - new_w))
-            new_y1 = random.randint(y1, max(y1, y2 - new_h))
+            new_x1 = x1 + random.randint(0, (x2 - x1) - new_w)
+            new_y1 = y1 + random.randint(0, (y2 - y1) - new_h)
             new_x2, new_y2 = new_x1 + new_w, new_y1 + new_h
             
             # Black out the area inside the original bounding box
@@ -57,7 +57,11 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.3), shrink_prob=0
             person_crop_resized = cv2.resize(person_crop, (new_w, new_h), interpolation=cv2.INTER_AREA)
             
             # Paste the resized person back into the blacked-out region
-            im_array[new_y1:new_y2, new_x1:new_x2] = person_crop_resized  # Paste tiny person
+            try:
+                im_array[new_y1:new_y2, new_x1:new_x2] = person_crop_resized # Paste tiny person
+            except ValueError as e:
+                print(f"Error pasting resized person: {e}")
+                print(f"Expected shape: {new_y2-new_y1, new_x2-new_x1}, Got: {person_crop_resized.shape}")
             
             # Update the bounding box to match the new size and position
             new_detections.append({'label': det['label'], 'bbox': [new_x1, new_y1, new_x2, new_y2]})
