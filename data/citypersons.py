@@ -35,6 +35,12 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0
     """
     w, h = im.size  # Original image size
     im_array = np.array(im)  # Convert the original image to an array
+
+    
+    # Ensure im_array is always 3D (RGB)
+    if len(im_array.shape) == 2:  
+        im_array = np.stack([im_array] * 3, axis=-1) 
+        
     new_detections = []
 
     for det in detections:
