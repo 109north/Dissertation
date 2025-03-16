@@ -22,7 +22,7 @@ from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 
 # code for person shrinking augmentation
-def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0.5):
+def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0.75):
     """
     Randomly selects bounding boxes, shrinks them down, and pastes them back within their original bounding box
     while keeping the rest of the image unchanged.
@@ -52,6 +52,9 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0
             # Choose a random shrinking scale
             scale = random.uniform(*scale_range)
             new_w, new_h = max(1, int((x2 - x1) * scale)), max(1, int((y2 - y1) * scale))
+
+            # Ensure new width/height are within original bbox
+            new_w, new_h = max(1, min(new_w, x2 - x1)), max(1, min(new_h, y2 - y1))
             
             # Pick a random position INSIDE the original bounding box
             new_x1 = x1 + random.randint(0, (x2 - x1) - new_w)
@@ -64,6 +67,11 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0
             # Resize the cropped person
             person_crop_resized = cv2.resize(person_crop, (new_w, new_h), interpolation=cv2.INTER_AREA)
             
+            # Fix size mismatch issue before pasting
+            if person_crop_resized.shape[:2] != (new_y2 - new_y1, new_x2 - new_x1):
+                print(f"Mismatch detected! Resizing again: Expected {(new_y2 - new_y1, new_x2 - new_x1)}, Got {person_crop_resized.shape}")
+                person_crop_resized = cv2.resize(person_crop_resized, (new_x2 - new_x1, new_y2 - new_y1), interpolation=cv2.INTER_AREA)
+
             # Paste the resized person back into the blacked-out region
             try:
                 im_array[new_y1:new_y2, new_x1:new_x2] = person_crop_resized # Paste tiny person
