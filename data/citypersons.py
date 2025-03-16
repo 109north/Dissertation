@@ -35,11 +35,6 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0
     """
     w, h = im.size  # Original image size
     im_array = np.array(im)  # Convert the original image to an array
-
-    
-    # Ensure im_array is always 3D (RGB)
-    if len(im_array.shape) == 2:  
-        im_array = np.stack([im_array] * 3, axis=-1) 
         
     new_detections = []
 
@@ -47,6 +42,12 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0
         if random.random() < shrink_prob:  # Apply shrinking with a given probability
             x1, y1, x2, y2 = det['bbox']
             person_crop = im_array[y1:y2, x1:x2].copy()  # Extract the person region
+
+            if person_crop.size == 0 or (y2 - y1) <= 0 or (x2 - x1) <= 0:
+                print(f"Skipping empty bbox: {x1, y1, x2, y2}")
+                new_detections.append(det)
+                continue
+
             
             # Choose a random shrinking scale
             scale = random.uniform(*scale_range)
