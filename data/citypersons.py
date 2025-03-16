@@ -41,6 +41,11 @@ def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0
     for det in detections:
         if random.random() < shrink_prob:  # Apply shrinking with a given probability
             x1, y1, x2, y2 = det['bbox']
+            # if the bounding box goes off the screen left or right, clip it into the image dimensions
+            if x1 < 0:
+                x1 = 1
+            if x2 > 2048:
+                x2 = 2048
             person_crop = im_array[y1:y2, x1:x2].copy()  # Extract the person region
 
             if person_crop.size == 0 or (y2 - y1) <= 0 or (x2 - x1) <= 0:
