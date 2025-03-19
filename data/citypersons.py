@@ -260,7 +260,7 @@ class CitypersonsDataset(Dataset):
             im = Image.open(original_im_info['filename']).transpose(Image.FLIP_LEFT_RIGHT) # flip the image
         elif im_info['img_id'][-8:] == '_blurred': # else if it is a blurred image:
             original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_blurred', ''))
-            im = Image.open(original_im_info['filename']).filter(ImageFilter.GaussianBlur(radius=2)) # blur the image with a radius of 2
+            im = Image.open(original_im_info['filename']).filter(ImageFilter.GaussianBlur(radius=4)) # blur the image with a radius of 2
         elif im_info['img_id'][-11:] == '_brightened' or im_info['img_id'][-9:] == '_darkened': # else if its brightness aug
             original_im_info = next(item for item in self.images_info if item['img_id'] == im_info['img_id'].replace('_brightened', '').replace('_darkened', ''))
             im = Image.open(original_im_info['filename'])
