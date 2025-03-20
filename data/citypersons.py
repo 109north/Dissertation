@@ -22,7 +22,7 @@ from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 
 # code for person shrinking augmentation
-def shrink_bboxes_in_image(im, detections, scale_range=(0.1, 0.4), shrink_prob=0.75):
+def shrink_bboxes_in_image(im, detections, scale_range=(0.4, 0.7), shrink_prob=1):
     """
     Randomly selects bounding boxes, shrinks them down, and pastes them back within their original bounding box
     while keeping the rest of the image unchanged.
