@@ -13,6 +13,7 @@ import yaml
 import random
 from tqdm import tqdm
 import torchvision
+import pandas as pd
 
 # move into the root directory to find my data module
 #os.chdir('/Users/narayanmurti/Workspace/Dissertation')
@@ -60,6 +61,17 @@ def train(args):
                                num_workers=4,
                                collate_fn=collate_function)
 
+    citypersons_test = CitypersonsDataset(split='test',
+                                          im_dir=dataset_config['im_test_path'],
+                                          ann_file=dataset_config['ann_test_path'])
+
+    test_dataset = DataLoader(citypersons_test,
+                              batch_size=4,
+                              shuffle=False,
+                              num_workers=4,
+                              collate_fn=collate_function)
+
+
     if args.use_resnet50_fpn:
         faster_rcnn_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True,
                                                                                  min_size=600,
@@ -97,7 +109,14 @@ def train(args):
     num_epochs = train_config['num_epochs']
     step_count = 0
 
+    rpn_classification_epochs = []
+    frcnn_classification_epochs = []
+    test_rpn_classification_epochs = []
+    test_frcnn_classification_epochs = []
+
     for i in range(num_epochs):
+        #training phase
+        faster_rcnn_model.train()
         rpn_classification_losses = []
         rpn_localization_losses = []
         frcnn_classification_losses = []
@@ -136,7 +155,41 @@ def train(args):
         loss_output += ' | FRCNN Classification Loss : {:.4f}'.format(np.mean(frcnn_classification_losses))
         loss_output += ' | FRCNN Localization Loss : {:.4f}'.format(np.mean(frcnn_localization_losses))
         print(loss_output)
+
+        #Testing phase
+        faster_rcnn_model.eval()
+        test_frcnn_classification_losses = []
+        test_rpn_classification_losses = []
+
+        with torch.no_grad():
+            for ims, targets, _ in tqdm(test_dataset):
+                for target in targets:
+                    target['boxes'] = target['bboxes'].float().to(device)
+                    del target['bboxes']
+                    target['labels'] = target['labels'].long().to(device)
+                images = [im.float().to(device) for im in ims]
+                batch_losses = faster_rcnn_model(images, targets)
+
+                test_frcnn_classification_losses.append(batch_losses['loss_classifier'].item())
+                test_rpn_classification_losses.append(batch_losses['loss_objectness'].item())  # Store RPN loss
+
+        print(f"  Test - RPN Classification Loss: {np.mean(test_rpn_classification_losses):.4f} | "
+              f"Test - FRCNN Classification Loss: {np.mean(test_frcnn_classification_losses):.4f}")
+        
+        rpn_classification_epochs.append(np.mean(rpn_classification_losses))
+        frcnn_classification_epochs.append(np.mean(frcnn_classification_losses))
+        test_rpn_classification_epochs.append(np.mean(test_rpn_classification_losses))
+        test_frcnn_classification_epochs.append(np.mean(test_frcnn_classification_losses))
+        
     print('Done Training...')
+
+    losses_dict = {'train rpn': rpn_classification_epochs,
+                   "train frcnn": frcnn_classification_epochs,
+                   "test rpn": test_rpn_classification_epochs,
+                   "test frcnn": test_frcnn_classification_epochs}
+    losses_df = pd.DataFrame(losses_dict)
+    losses_df.to_csv('/home/nam27/Dissertation/results/losses.csv')
+    
 
 
 #THIS IS FOR RUNNING ON THE COMMAND LINE
