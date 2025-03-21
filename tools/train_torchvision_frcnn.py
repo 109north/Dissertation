@@ -116,7 +116,6 @@ def train(args):
 
     for i in range(num_epochs):
         #training phase
-        faster_rcnn_model.train()
         rpn_classification_losses = []
         rpn_localization_losses = []
         frcnn_classification_losses = []
@@ -157,7 +156,6 @@ def train(args):
         print(loss_output)
 
         #Testing phase
-        faster_rcnn_model.eval()
         test_frcnn_classification_losses = []
         test_rpn_classification_losses = []
 
