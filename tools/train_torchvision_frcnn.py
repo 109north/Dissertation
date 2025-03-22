@@ -56,7 +56,7 @@ def train(args):
                      ann_file=dataset_config['ann_train_path'])
 
     train_dataset = DataLoader(citypersons,
-                               batch_size=4,
+                               batch_size=8,
                                shuffle=True,
                                num_workers=4,
                                collate_fn=collate_function)
@@ -66,7 +66,7 @@ def train(args):
                                           ann_file=dataset_config['ann_test_path'])
 
     test_dataset = DataLoader(citypersons_test,
-                              batch_size=4,
+                              batch_size=1,
                               shuffle=False,
                               num_workers=4,
                               collate_fn=collate_function)
