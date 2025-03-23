@@ -38,4 +38,4 @@ train_params:
   num_epochs: 35
   lr_steps : [12, 16]
   lr: 0.001
-  ckpt_name: 'frcnn_citypersons_Aug8_batch32epoch35.pth'
+  ckpt_name: 'frcnn_citypersons_Aug8_batch16epoch35.pth'
