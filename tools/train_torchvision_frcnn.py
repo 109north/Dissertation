@@ -67,9 +67,7 @@ def train(args):
 
     test_dataset = DataLoader(citypersons_test,
                               batch_size=1,
-                              shuffle=False,
-                              num_workers=4,
-                              collate_fn=collate_function)
+                              shuffle=False)
 
 
     if args.use_resnet50_fpn:
