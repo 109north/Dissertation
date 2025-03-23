@@ -56,7 +56,7 @@ def train(args):
                      ann_file=dataset_config['ann_train_path'])
 
     train_dataset = DataLoader(citypersons,
-                               batch_size=32,
+                               batch_size=16,
                                shuffle=True,
                                num_workers=4,
                                collate_fn=collate_function)
@@ -67,7 +67,9 @@ def train(args):
 
     test_dataset = DataLoader(citypersons_test,
                               batch_size=1,
-                              shuffle=False)
+                              shuffle=False,
+                              num_workers=4,
+                              collate_fn=collate_function)
 
 
     if args.use_resnet50_fpn:
