@@ -7,3 +7,6 @@ Convolutional Neural Networks (CNNs) are a deep learning architecture that can b
 The code for this project is contained in this repository. All files were originally created in Jupyter Lab, then pushed onto this repository. They were then pulled onto the University GPU server and training was run on that system. Any bug fixes and edits would occur on GitHub, then be pulled again onto the GPU.
 
 The full report an be accessed through nam27@st-andrews.ac.uk
+
+Source of original code that was used to construct this repository:
+3Ren S, He K, Girshick RB, Sun J. Faster R-CNN: towards real-time object detection with region proposal networks. CoRR. 2015;abs/1506.01497
