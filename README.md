@@ -1,6 +1,8 @@
 # Data Augmentation for Convolutional Neural Networks on Pedestrian Detection
 
-#### School of Mathematics and Statistics, University of St Andrews
+### School of Mathematics and Statistics, University of St Andrews
+
+#### Narayan Murti, 2025.
 
 Convolutional Neural Networks (CNNs) are a deep learning architecture that can be used for pedestrian detection on images. Data augmentation is the process of artificially expanding a dataset to diversify the features of its desired classifications. In this study, I will test the effects of traditional data augmentation on a pedestrian detection dataset called CityPersons, using a popular CNN called Faster R-CNN. I wrote code to clean CityPersons and load it onto training for Faster R-CNN, along with code for my chosen data augmentations. I will explore how the different data augmentations on the training data affect the accuracy of the model when tested on unseen data. I observed an increase in certain key accuracy metrics despite running into issues with computing power and diversity of augmentation types.
 
