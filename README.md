@@ -8,5 +8,5 @@ The code for this project is contained in this repository. All files were origin
 
 The full report an be accessed through nam27@st-andrews.ac.uk
 
-Source of original code that was used to construct this repository:
-3Ren S, He K, Girshick RB, Sun J. Faster R-CNN: towards real-time object detection with region proposal networks. CoRR. 2015;abs/1506.01497
+## References
+Ren S, He K, Girshick RB, Sun J. Faster R-CNN: towards real-time object detection with region proposal networks. CoRR. 2015;abs/1506.01497
