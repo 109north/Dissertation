@@ -106,7 +106,6 @@ def load_images_and_anns(im_dir, ann_file, split):
     :param label2idx: Class Name to index mapping for dataset
     :return:
     """
-    # YOU SHOULD PUT THIS OUTSIDE THE FUNCTION 
     ann_df = pd.read_csv(ann_file)
     ann_df = ann_df.groupby('image_id').agg({ # pivot the dataframe so that there's one line per image
         'Unnamed: 0': list,
@@ -124,24 +123,14 @@ def load_images_and_anns(im_dir, ann_file, split):
     
     }).reset_index().rename(columns={'Unnamed: 0':'box_id'})
     # drop the rows which image doesn't exist on my computer
-    # *THIS STEP NOT NECESSARY SINCE IVE DROPPED ALL ENTRIES ORIGINALLY LABELED 'IGNORE REGION'*
-    #dfls = list(ann_df['image_id']) # list of image ids in the dataframe
-    #ls = os.listdir('citypersons_dir/train/images') # list of image ids on my computer
-    #drop = list(set(dfls) - set(ls)) # entries that aren't on the computer
-    #missing = [item in drop for item in ann_df['image_id'].to_list()]
-    #ann_df = ann_df.loc[~pd.Series(missing, index=ann_df.index)] # drop the corresponding rows
     
     im_infos = []
     for index, row in tqdm(ann_df.iterrows()): # for each line in the annotations dataframe
         im_info = {}
         im_info['img_id'] = row['image_id'].split('_leftImg8bit.png')[0] # get the image id by splitting at the suffix
         im_info['filename'] = os.path.join(im_dir, '{}_leftImg8bit.png'.format(im_info['img_id'])) # creates a path to the relevant image file by adding the png suffix onto the image id from above line
-        #image_BGR = cv2.imread(im_info['filename']) # read the image with cv2
-        #image_RGB = cv2.cvtColor(image_BGR, cv2.COLOR_BGR2RGB) # convert to RBG
-        #image_tensor = torch.from_numpy(image_RGB).float().permute(2, 0, 1).to("cuda") / 255.0  # Normalize to [0,1]
         im = Image.open(im_info['filename'])
         im_tensor = torchvision.transforms.ToTensor()(im)
-        #h, w = im_tensor.shape[:2] # get height and width of image
         w, h = im.size
         im_info['width'] = w
         im_info['height'] = h
