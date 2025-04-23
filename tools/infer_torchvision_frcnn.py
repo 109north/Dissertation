@@ -273,10 +273,6 @@ def infer(args):
     last_6_filenames = list(det_df.tail(6)['filename'])
     sample_count = 0
 
-    #NO LONGER USING RANDOM SAMPLES
-    #for sample_count in tqdm(range(10)):
-    #    random_idx = random.randint(0, len(citypersons))
-
     for fname in last_6_filenames:
         fname = fname.translate({ord(i): None for i in "(),'"}) #remove the extra characters from the filename
         matching_index = [i for i, info in enumerate(citypersons.images_info) if info['filename'] == fname] #find the index of the corresponding filename
