@@ -15,9 +15,6 @@ from tqdm import tqdm
 import torchvision
 import pandas as pd
 
-# move into the root directory to find my data module
-#os.chdir('/Users/narayanmurti/Workspace/Dissertation')
-#sys.path.append(os.getcwd())
 from config.config import args
 from data.citypersons import CitypersonsDataset
 from torch.utils.data.dataloader import DataLoader
@@ -32,7 +29,7 @@ def collate_function(data):
 
 
 def train(args):
-    # Read the config file #
+    # Read the config file 
     with open(args.config_path, 'r') as file:
         try:
             config = yaml.safe_load(file)
@@ -51,6 +48,7 @@ def train(args):
     if device == 'cuda':
         torch.cuda.manual_seed_all(seed)
 
+    #load the dataset instance, both training and testing deparately
     citypersons = CitypersonsDataset(split = 'train',
                      im_dir=dataset_config['im_train_path'],
                      ann_file=dataset_config['ann_train_path'])
@@ -114,6 +112,7 @@ def train(args):
     test_rpn_classification_epochs = []
     test_frcnn_classification_epochs = []
 
+    #go through each epoch
     for i in range(num_epochs):
         #training phase
         rpn_classification_losses = []
@@ -133,11 +132,13 @@ def train(args):
             loss += batch_losses['loss_rpn_box_reg']
             loss += batch_losses['loss_objectness']
 
+            #save each of the loss function parameters for loss curve plotting
             rpn_classification_losses.append(batch_losses['loss_objectness'].item())
             rpn_localization_losses.append(batch_losses['loss_rpn_box_reg'].item())
             frcnn_classification_losses.append(batch_losses['loss_classifier'].item())
             frcnn_localization_losses.append(batch_losses['loss_box_reg'].item())
 
+            #update the model parameters with backpropogation
             loss.backward()
             optimizer.step()
             step_count +=1
@@ -148,6 +149,7 @@ def train(args):
         else:
             torch.save(faster_rcnn_model.state_dict(), os.path.join(train_config['task_name'],
                                                                     'tv_frcnn_' + train_config['ckpt_name']))
+        #terminal output loss function values
         loss_output = ''
         loss_output += 'RPN Classification Loss : {:.4f}'.format(np.mean(rpn_classification_losses))
         loss_output += ' | RPN Localization Loss : {:.4f}'.format(np.mean(rpn_localization_losses))
@@ -155,10 +157,11 @@ def train(args):
         loss_output += ' | FRCNN Localization Loss : {:.4f}'.format(np.mean(frcnn_localization_losses))
         print(loss_output)
 
-        #Testing phase
+        #Testing phase -- computing the validation loss at each step
         test_frcnn_classification_losses = []
         test_rpn_classification_losses = []
 
+        #same steps as the training phase, but with NO loss.backward() or optimizer.step() so that parameters don't update
         with torch.no_grad():
             for ims, targets, _ in tqdm(test_dataset):
                 for target in targets:
@@ -171,6 +174,7 @@ def train(args):
                 test_frcnn_classification_losses.append(batch_losses['loss_classifier'].item())
                 test_rpn_classification_losses.append(batch_losses['loss_objectness'].item())  # Store RPN loss
 
+        #print out validation loss
         print(f"  Test - RPN Classification Loss: {np.mean(test_rpn_classification_losses):.4f} | "
               f"Test - FRCNN Classification Loss: {np.mean(test_frcnn_classification_losses):.4f}")
         
@@ -181,6 +185,7 @@ def train(args):
         
     print('Done Training...')
 
+    #save the test and validation losses into a dataframe for easy plotting.
     losses_dict = {'train rpn': rpn_classification_epochs,
                    "train frcnn": frcnn_classification_epochs,
                    "test rpn": test_rpn_classification_epochs,
